@@ -1,0 +1,18 @@
+# Core dependencies
+numpy<1.24
+scipy
+pandas
+rdkit-pypi
+meeko
+vina
+gemmi
+prody
+biopython
+pubchempy
+transformers
+pandas-flavor
+subword-nmt
+git+https://github.com/bp-kelley/descriptastorus
+# DeepPurpose (custom fork; clone manually)
+# git clone https://github.com/mosmos6/Deeppurpose
+# pip install ./Deeppurpose
