@@ -3,28 +3,43 @@
 # Created: 2025-05-13
 # Description: Fetch and prepare receptor PDB file for docking and MD
 
+"""
+Step 2: Receptor Preparation
+- Download PDB structure from RCSB
+- Remove water molecules
+- Apply PDBFixer to patch missing atoms and residues
+- Add hydrogens
+- Output cleaned receptor PDB
+"""
+
 import os
+import sys
 from pdbfixer import PDBFixer
 from openmm.app import PDBFile
 
-# Define target protein PDB ID or local file
-PDB_ID = "7JLT"  # Replace with your target ID or use a filepath
-OUTPUT_FILE = "receptor_fixed.pdb"
+# Example: download structure by PDB ID (use subprocess to call wget)
+import subprocess
 
-# Step 1: Load receptor
-if os.path.exists(PDB_ID):
-    fixer = PDBFixer(filename=PDB_ID)
-else:
-    fixer = PDBFixer(pdbid=PDB_ID)
+PDB_ID = "7KDT"  # Change to your target
+receptor_raw = "receptor.pdb"
+receptor_clean = "receptor_clean.pdb"
+receptor_final = "receptor_fixed.pdb"
 
-# Step 2: Apply PDBFixer operations
+# Download PDB file
+subprocess.run(["wget", f"https://files.rcsb.org/download/{PDB_ID}.pdb", "-O", receptor_raw])
+
+# Remove water using Open Babel
+subprocess.run(["obabel", receptor_raw, "-O", receptor_clean, "--delete", "HOH"])
+
+# Apply PDBFixer
+fixer = PDBFixer(filename=receptor_clean)
 fixer.findMissingResidues()
 fixer.findMissingAtoms()
 fixer.addMissingAtoms()
-fixer.addMissingHydrogens(pH=7.4)
+fixer.addMissingHydrogens(pH=7.0)
 
-# Step 3: Save fixed receptor
-with open(OUTPUT_FILE, "w") as f:
+# Save fixed receptor
+with open(receptor_final, "w") as f:
     PDBFile.writeFile(fixer.topology, fixer.positions, f)
 
-print(f"✅ Receptor prepared and saved as {OUTPUT_FILE}")
+print("✅ Receptor preparation complete → receptor_fixed.pdb")
