@@ -1,17 +1,37 @@
-# DeepPurpose-MD-Discovery Pipeline
+# 🧬 DeepPurpose-MD-Discovery
 
-This repository provides an end-to-end pipeline for identifying, docking, simulating, and analyzing potential small molecule inhibitors targeting SARS-CoV-2 viral proteins (e.g., ORF3a, ORF9b, Spike S1-NTD) using deep learning and molecular dynamics.
+A streamlined, Colab-optimized drug discovery pipeline integrating:
 
-### Features
-- 🧠 **DeepPurpose-based DTI prediction**, trained on COVID-specific BindingDB data (UC San Diego)
-- 🔍 **AutoDock Vina** docking
-- 🌊 **OpenMM GPU-accelerated MD simulations**
-- 📈 PCA, FEL, RMSD/RMSF, hydrogen bonding, residence time, water shell
-- 🔬 Deep ligand-protein interaction analysis (per-residue)
+- ✅ Ligand-target prediction with a custom-trained [DeepPurpose](https://github.com/mosmos6/Deeppurpose) fork
+- ✅ Structural docking using [AutoDock Vina](http://vina.scripps.edu/)
+- ✅ GPU-accelerated Molecular Dynamics with [OpenMM](https://openmm.org/) and [OpenFF](https://openforcefield.org/)
+- ✅ Stability and mechanistic analyses via PCA, FEL, RMSD, H-bonding, water networks, and more.
 
-### Requirements
+This repo demonstrates how to simulate and evaluate ligand–protein interactions from end-to-end using SARS-CoV-2 viral proteins as case studies.
 
-Install the dependencies using:
+---
 
-```bash
-pip install -r requirements.txt
+## 🔧 Setup Instructions (Google Colab)
+
+This pipeline is designed for use in **Google Colab**, with full support for `condacolab`.
+
+---
+
+### ✅ Step 1: Enable Conda in Colab
+
+Paste the following **at the very top of your Colab notebook**:
+
+```python
+!pip install -q condacolab
+import condacolab
+condacolab.install()'''
+
+🔄 NOTE: This will crash your runtime once. That's expected.
+
+After Colab restarts, rerun the following cell:
+
+'''import condacolab
+condacolab.check()
+!mamba env update -n base -f environment.yml
+'''
+
