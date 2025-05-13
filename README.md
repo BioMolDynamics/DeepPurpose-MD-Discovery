@@ -24,7 +24,8 @@ Paste the following **at the very top of your Colab notebook**:
 ```python
 !pip install -q condacolab
 import condacolab
-condacolab.install()```
+condacolab.install()
+```
 
 
 
@@ -32,8 +33,10 @@ condacolab.install()```
 
 After Colab restarts, rerun the following cell:
 
-```import condacolab
+```python
+import condacolab
 condacolab.check()
-!mamba env update -n base -f environment.yml```
+!mamba env update -n base -f environment.yml
+```
 
 
