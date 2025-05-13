@@ -1,0 +1,22 @@
+name: deeppurpose-md-env
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - openmm
+  - openff-toolkit
+  - pdbfixer
+  - rdkit
+  - pip
+  - pip:
+      - meeko
+      - vina
+      - gemmi
+      - prody
+      - biopython
+      - pubchempy
+      - transformers
+      - pandas
+      - pandas-flavor
+      - subword-nmt
+      - git+https://github.com/bp-kelley/descriptastorus
