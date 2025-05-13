@@ -39,4 +39,46 @@ condacolab.check()
 !mamba env update -n base -f environment.yml
 ```
 
+### ✅ Step 2: Download AutoDock Vina Binary
 
+AutoDock Vina is not available via pip/conda, so download it manually:
+
+```python
+!wget https://github.com/ccsb-scripps/AutoDock-Vina/releases/download/v1.2.5/vina_1.2.5_linux_x86_64
+!chmod +x vina_1.2.5_linux_x86_64
+!./vina_1.2.5_linux_x86_64 --version
+```
+
+### ✅ Step 3: Clone & Install Custom DeepPurpose Fork
+
+```python
+!git clone https://github.com/BioMolDynamics/Deeppurpose
+!pip install ./Deeppurpose
+```
+
+### ✅ Step 4: Run the Pipeline
+
+You can now run the full discovery pipeline:
+
+- DeepPurpose prediction with ProtTrans embeddings
+
+- Ligand docking with Vina
+
+- MD simulation using OpenMM/OpenFF
+
+- Output analysis (PCA, FEL, H-bond, RMSD, etc.)
+
+Sample .py and .ipynb scripts are included in the repository.
+
+### 📂 Repository Contents
+
+environment.yml — Full environment for conda setup
+
+pipeline_main.py — Unified script for ligand → DeepPurpose → docking → MD → analysis
+
+notebooks/ — Example Colab notebooks (coming soon)
+
+docs/ — Description of each pipeline module (WIP)
+
+### 📜 License
+MIT License. Please cite this repository if used in academic work.
