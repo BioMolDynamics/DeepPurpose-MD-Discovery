@@ -43,3 +43,15 @@ with open(receptor_final, "w") as f:
     PDBFile.writeFile(fixer.topology, fixer.positions, f)
 
 print("✅ Receptor preparation complete → receptor_fixed.pdb")
+
+# Run Meeko to prepare receptor
+print("Preparing receptor with Meeko...")
+meeko_command = (
+    "python3 /usr/local/lib/python3.11/site-packages/meeko/cli/mk_prepare_receptor.py "
+    f"-i {receptor_final} -o receptor -p -j -v "
+    "--box_size 20 20 20 --box_center 0 0 0 --allow_bad_res"
+)
+os.system(meeko_command)
+
+print("Receptor pdbqt file preparation complete.")
+
