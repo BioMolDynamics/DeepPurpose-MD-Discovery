@@ -45,3 +45,75 @@ print(f"✅ Cleaned and saved {len(df)} compound-target pairs to {processed_tsv_
 
 # ✅ Step 3: Load into DeepPurpose Dataset Format
 X = load_bindingdb_covid_tsv(processed_tsv_path)
+
+
+### 7_deeppurpose_training.py (Part 2)
+# Author: Iori Mochizuki
+# Step 7b: ProtTrans Embedding and Data Augmentation
+
+import pandas as pd
+import numpy as np
+import torch
+import pickle
+from tqdm import tqdm
+from transformers import T5Tokenizer, T5EncoderModel
+import matplotlib.pyplot as plt
+
+# === Load processed dataset ===
+df = pd.read_csv("processed_bindingdb.tsv", sep='\t')
+unique_targets = df['Target Sequence'].unique()
+print(f"🔎 Unique protein sequences: {len(unique_targets)}")
+
+# === Load ProtTrans model ===
+tokenizer = T5Tokenizer.from_pretrained("Rostlab/prot_t5_xl_uniref50", do_lower_case=False)
+model = T5EncoderModel.from_pretrained("Rostlab/prot_t5_xl_uniref50").eval()
+
+# === Move model to GPU if available ===
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model = model.to(device)
+
+# === Generate ProtTrans embeddings ===
+protein_embeddings = {}
+
+with torch.no_grad():
+    for seq in tqdm(unique_targets):
+        seq_clean = seq.replace(" ", "")
+        tokenized = tokenizer(" ".join(list(seq_clean)), return_tensors="pt", padding=True).to(device)
+        embedding = model(**tokenized).last_hidden_state
+        pooled = torch.mean(embedding, dim=1)
+        protein_embeddings[seq_clean] = pooled.squeeze().cpu().numpy()
+
+# === Save embeddings to disk ===
+with open("protein_embeddings.pkl", "wb") as f:
+    pickle.dump(protein_embeddings, f)
+print("✅ Embeddings saved to protein_embeddings.pkl")
+
+# === Merge embeddings with dataframe ===
+df["ProtTrans"] = df["Target Sequence"].map(lambda s: protein_embeddings.get(s.replace(" ", ""), None))
+df.to_pickle("embedded_bindingdb.pkl")
+print("✅ Merged ProtTrans embeddings with dataset → embedded_bindingdb.pkl")
+
+# === Load filtered strong binders (manually prepared) ===
+df_strong = pd.read_csv("strong_binders_cleaned.csv")
+top_targets = df_strong["Target Sequence"].value_counts()
+
+# === Save and plot top proteins ===
+top_targets.to_csv("top_protein_targets.csv", header=["Count"])
+print("✅ Saved protein frequency table to top_protein_targets.csv")
+
+plt.figure(figsize=(10, 4))
+top_targets.head(10).plot(kind="barh", title="Top 10 Protein Targets")
+plt.xlabel("Count")
+plt.gca().invert_yaxis()
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+
+# === Sample top binders: max 150 ligands per protein ===
+df_sampled = (
+    df_strong.groupby("Target Sequence", group_keys=False)
+    .apply(lambda g: g.sample(n=min(len(g), 150), random_state=42))
+)
+
+df_sampled.to_csv("strong_binders_top150_per_protein.csv", index=False)
+print(f"✅ Final dataset shape: {df_sampled.shape}")
