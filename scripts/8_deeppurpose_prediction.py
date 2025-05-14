@@ -51,3 +51,60 @@ from Bio import SeqIO
 print("🧬 FASTA entries found in protein.faa:")
 for record in SeqIO.parse(fasta_path, "fasta"):
     print(f"- {record.id} | {record.description}")
+
+
+### 8_deeppurpose_prediction.py (Part 2)
+# Author: Iori Mochizuki
+# Created: 2025-05-13
+# Description: Apply ProtTrans and PCA to embed SARS-CoV-2 FASTA sequences
+
+import pandas as pd
+import numpy as np
+import torch
+import pickle
+from transformers import T5Tokenizer, T5EncoderModel
+from tqdm import tqdm
+
+# === Step 1: Load ProtTrans model ===
+print("🔄 Loading ProtTrans model and tokenizer...")
+tokenizer = T5Tokenizer.from_pretrained("Rostlab/prot_t5_xl_uniref50", do_lower_case=False)
+model_pt = T5EncoderModel.from_pretrained("Rostlab/prot_t5_xl_uniref50")
+model_pt = model_pt.eval().to("cuda" if torch.cuda.is_available() else "cpu")
+print("✅ ProtTrans model loaded.")
+
+# === Step 2: Load FASTA sequences ===
+df = pd.read_csv("combined_fasta_targets.csv")
+sequences = df["Target Sequence"].tolist()
+
+# === Step 3: Generate ProtTrans embeddings ===
+prot_embeddings = {}
+for i, seq in tqdm(enumerate(sequences), total=len(sequences), desc="🔬 Embedding FASTA"):
+    clean_seq = seq.replace(" ", "")
+    spaced_seq = " ".join(list(clean_seq))  # Insert spaces between amino acids
+    ids = tokenizer(spaced_seq, return_tensors="pt", padding=True).to(model_pt.device)
+
+    with torch.no_grad():
+        emb = model_pt(**ids).last_hidden_state.mean(dim=1).squeeze().cpu().numpy()
+        prot_embeddings[f"prot_{i:02d}"] = emb
+
+# Save full 1024-dim embeddings
+with open("sars2_prottrans_embeddings.pkl", "wb") as f:
+    pickle.dump(prot_embeddings, f)
+print("✅ ProtTrans embeddings saved → sars2_prottrans_embeddings.pkl")
+
+# === Step 4: Apply PCA dimensionality reduction ===
+with open("pca_model.pkl", "rb") as f:
+    pca_model = pickle.load(f)
+
+keys_sorted = sorted(prot_embeddings.keys())
+matrix = np.stack([prot_embeddings[k] for k in keys_sorted])
+reduced = pca_model.transform(matrix)
+
+# === Step 5: Create final DataFrame for prediction ===
+df_infer = pd.DataFrame({
+    "Target Sequence": sequences,
+    "ProtTrans": list(reduced)
+})
+
+df_infer.to_csv("df_infer.csv", index=False)
+print("✅ Reduced embeddings saved → df_infer.csv")
