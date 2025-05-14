@@ -17,6 +17,9 @@ dependencies:
       - biopython
       - pubchempy
       - transformers
+      - torch
+      - tqdm
+      - matplotlib
       - pandas
       - pandas-flavor
       - subword-nmt
