@@ -90,29 +90,4 @@ with open("final_structure.pdb", "w") as f:
     PDBFile.writeFile(simulation.topology, simulation.context.getState(getPositions=True).getPositions(), f)
 print("🎉 MD complete → final_structure.pdb saved.")
 
-# === Analysis: RMSD ===
-print("📊 RMSD analysis...")
-traj = md.load("production_md.dcd", top="solvated_receptor_ligand.pdb")
-ref = md.load("npt_equilibrated.pdb")
 
-rmsd = md.rmsd(traj, ref, frame=0)
-plt.figure()
-plt.plot(rmsd)
-plt.xlabel("Frame")
-plt.ylabel("RMSD (nm)")
-plt.title("Ligand RMSD Over Time")
-plt.savefig("quick_rmsd_plot.png")
-print("✅ RMSD plot saved.")
-
-# === Analysis: RMSF ===
-print("📊 RMSF analysis...")
-ca_atoms = traj.topology.select("name CA")
-rmsf = md.rmsf(traj, ref, atom_indices=ca_atoms)
-
-plt.figure()
-plt.plot(rmsf)
-plt.xlabel("Residue Index")
-plt.ylabel("RMSF (nm)")
-plt.title("Cα RMSF Profile")
-plt.savefig("quick_rmsf_plot.png")
-print("✅ RMSF plot saved.")
