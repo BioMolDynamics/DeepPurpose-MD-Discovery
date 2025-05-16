@@ -4,7 +4,7 @@
 # Description: Run OpenMM-based 2 ns MD simulation of ligand-receptor complex using OpenFF
 
 from openmm.app import *
-from openmm import MonteCarloBarostat, Platform
+from openmm import MonteCarloBarostat, Platform, LangevinMiddleIntegrator
 from openmm.unit import *
 from openmmforcefields.generators import SMIRNOFFTemplateGenerator
 from openff.toolkit.topology import Molecule, Topology as OFFTopology
