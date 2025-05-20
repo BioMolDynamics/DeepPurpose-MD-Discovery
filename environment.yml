@@ -27,3 +27,4 @@ dependencies:
       - pandas
       - pandas-flavor
       - subword-nmt
+      - sentencepiece
