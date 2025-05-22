@@ -18,11 +18,12 @@ import argparse
 
 # === CLI Argument: --skip-fix ===
 parser = argparse.ArgumentParser()
+parser.add_argument("pdb_id", type=str, help="PDB ID to download and prepare")
 parser.add_argument("--skip-fix", action="store_true", help="Skip PDBFixer (for structures like 7KDT that fail Meeko)")
 args = parser.parse_args()
 
 # === Configuration ===
-PDB_ID = "7KDT"  # Change as needed
+PDB_ID = args.pdb_id  # Take from command-line
 receptor_raw = "receptor.pdb"
 receptor_clean = "receptor_clean.pdb"
 receptor_fixed = "receptor_fixed.pdb"  # Will be overwritten if --skip-fix
