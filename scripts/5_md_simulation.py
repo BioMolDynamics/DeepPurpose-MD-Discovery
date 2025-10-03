@@ -1,6 +1,6 @@
 # 5_md_simulation.py
 # Author: Iori Mochizuki
-# Updated: 2025-07-30
+# Updated: 2025-09-17
 # Description: Run OpenMM-based 2 ns MD simulation of ligand-receptor complex using OpenFF (RNA & no-ligand compatible)
 
 
@@ -20,6 +20,7 @@ parser.add_argument("--no-ligand", action="store_true", help="Run without ligand
 parser.add_argument("--input-receptor", type=str, default="receptor_cleaned.pdb", help="Input receptor PDB")
 parser.add_argument("--input-ligand", type=str, default="ligand.sdf", help="Input ligand SDF")
 parser.add_argument("--n-steps", type=int, default=1000000, help="Number of steps for production MD (default: 1,000,000)")
+parser.add_argument("--seed", type=int, default=13579, help="Random seed for barostat/integrator/velocities")
 args = parser.parse_args()
 
 suffix = "_no_ligand" if args.no_ligand else ""
@@ -72,9 +73,17 @@ system = forcefield.createSystem(
     nonbondedCutoff=1 * nanometer,
     constraints=HBonds
 )
-system.addForce(MonteCarloBarostat(1 * bar, 300 * kelvin, 25))
+seed = int(args.seed)
+#system.addForce(MonteCarloBarostat(1 * bar, 300 * kelvin, 25))
 
+# Barostat with a fixed seed
+barostat = MonteCarloBarostat(1 * bar, 300 * kelvin, 25)
+barostat.setRandomNumberSeed(seed)
+system.addForce(barostat)
+
+# Langevin integrator with a fixed seed
 integrator = LangevinMiddleIntegrator(300 * kelvin, 1 / picosecond, 0.002 * picoseconds)
+integrator.setRandomNumberSeed(seed)
 #platform = Platform.getPlatformByName("CUDA")
 simulation = Simulation(modeller.topology, system, integrator)
 simulation.context.setPositions(modeller.positions)
@@ -84,7 +93,7 @@ simulation.minimizeEnergy()
 simulation.reporters.append(PDBReporter(f"minimized{suffix}.pdb", 100))
 
 print("🔹 NVT Equilibration (1 ps)...")
-simulation.context.setVelocitiesToTemperature(300 * kelvin)
+simulation.context.setVelocitiesToTemperature(300 * kelvin, seed)
 simulation.reporters.append(PDBReporter(f"nvt_equilibrated{suffix}.pdb", 100))
 simulation.reporters.append(StateDataReporter(stdout, 100, step=True, potentialEnergy=True, temperature=True))
 simulation.step(500)  # 1 ps
